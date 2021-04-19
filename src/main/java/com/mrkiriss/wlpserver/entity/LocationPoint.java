@@ -9,8 +9,6 @@ import java.util.List;
 @Entity
 @Data
 public class LocationPoint {
-    private double lat;
-    private double lon;
     private String roomName;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name="LP_ID")
@@ -37,8 +35,6 @@ public class LocationPoint {
     }
     public String toString(){
         String result="";
-        result+="lat = "+ lat+"\n";
-        result+="lon = "+ lon+"\n";
         result+="room = "+ roomName+"\n";
         for (AccessPoint accessPoint : accessPoints){
             result+="mac: "+accessPoint.getMac()+" rssi: "+accessPoint.getRssi()+"\n";

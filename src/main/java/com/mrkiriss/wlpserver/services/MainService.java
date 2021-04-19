@@ -3,7 +3,6 @@ package com.mrkiriss.wlpserver.services;
 import com.mrkiriss.wlpserver.entity.AccessPoint;
 import com.mrkiriss.wlpserver.entity.LocationPoint;
 import com.mrkiriss.wlpserver.entity.LocationPointInfo;
-import com.mrkiriss.wlpserver.model.CalibrationAccessPoint;
 import com.mrkiriss.wlpserver.model.CalibrationLocationPoint;
 import com.mrkiriss.wlpserver.model.DefinedLocationPoint;
 import com.mrkiriss.wlpserver.model.StringResponse;
@@ -31,12 +30,14 @@ public class MainService {
     public DefinedLocationPoint definedLocationPointWithRoom(CalibrationLocationPoint calibrationLocationPoint){
 
         // сглаживаем входные данные
-        LocationPoint smoothedLocationPoint = smoothPointOfCalibration(calibrationLocationPoint);
-        if (smoothedLocationPoint.getAccessPoints().size()==0) return null;
+        List<LocationPoint> splitLPs = splitPointOfCalibration(calibrationLocationPoint);
         // подбираем все возможные точки (по количеству совпадающих AP)
-        List<LocationPoint> possibleLocations = chooseAllSuitableLocationPoints(smoothedLocationPoint.collectMACs()); // возможные
-        // выбираем точку с минимальным евклидовым расстоянием
-        DefinedLocationPoint result = chooseLocationPointWithMinDelta(smoothedLocationPoint, possibleLocations);
+        if (splitLPs.size()==0) return null;
+        List<LocationPoint> possibleLocations = chooseAllSuitableLocationPoints(splitLPs.get(splitLPs.size()-1).collectMACs());
+        // выбираем для каждого набора точку с минимальным евклидовым расстоянием
+        List<DefinedLocationPoint> preResult = chooseLocationPointsWithMinDelta(splitLPs, possibleLocations);
+        // выбираем самую частовстречаемую точку
+        DefinedLocationPoint result = chooseMostCommon(preResult);
         // дополняем результат данными для карты
         LocationPointInfo resultInfo = lpInfoRepository.findByRoomName(result.getRoomName());
         result.setX(resultInfo.getX());
@@ -46,57 +47,18 @@ public class MainService {
         return result;
     }
 
-    private LocationPoint smoothPointOfCalibration(CalibrationLocationPoint calibrationLocationPoint){
-        List<CalibrationAccessPoint> listOfCalibrationAccessPoints= generateListOfCalibrationAPs(calibrationLocationPoint);
-        LocationPoint result = new LocationPoint();
-        result.setLat(calibrationLocationPoint.getLat());
-        result.setLon(calibrationLocationPoint.getLon());
-        result.setRoomName(calibrationLocationPoint.getRoomName());
-        result.setAccessPoints(selectSuitableAPs(listOfCalibrationAccessPoints, calibrationLocationPoint.getCalibrationSets().size()));
-        return result;
-    }
-    // возвращает список объектов, в каждом из которых mac и сумма всех встреченных на этот mac rssi и количество этих rssi
-    private List<CalibrationAccessPoint> generateListOfCalibrationAPs(CalibrationLocationPoint calibrationLocationPoint){
-        List<CalibrationAccessPoint> result = new ArrayList<>();
-        CalibrationAccessPoint currentCalibrationAP;
+    private List<LocationPoint> splitPointOfCalibration(CalibrationLocationPoint calibrationLocationPoint){
+        List<LocationPoint> results = new ArrayList<>();
+        LocationPoint result;
 
-        for (List<AccessPoint> accessPointList : calibrationLocationPoint.getCalibrationSets()){
-            for (AccessPoint accessPoint : accessPointList){
-
-                currentCalibrationAP=findCalibrationAccessPoint(accessPoint.getMac(), result);
-
-                if (currentCalibrationAP==null){
-                    currentCalibrationAP=new CalibrationAccessPoint(accessPoint.getMac());
-                    result.add(currentCalibrationAP);
-                }
-
-                currentCalibrationAP.addToRssiSum(accessPoint.getRssi());
-            }
+        for (List<AccessPoint> currentAPSet: calibrationLocationPoint.getCalibrationSets()){
+            result = new LocationPoint();
+            result.setRoomName(calibrationLocationPoint.getRoomName());
+            result.setAccessPoints(currentAPSet);
+            results.add(result);
         }
 
-        return result;
-    }
-    private CalibrationAccessPoint findCalibrationAccessPoint(String checkedMac, List<CalibrationAccessPoint> calibrationAccessPoints){
-        for (CalibrationAccessPoint calibrationAP : calibrationAccessPoints){
-            if (calibrationAP.getMac().equals(checkedMac)) return calibrationAP;
-        }
-        return null;
-    }
-    // возвращает список AP с усреднёнными rssi, только те, количество которых по mac превышает половину во всех тренировочных наборах
-    private List<AccessPoint> selectSuitableAPs(List<CalibrationAccessPoint> calibrationAccessPointList, int numberOfCalibrationKits){
-
-        final int thresholdForNumberOfAPs = numberOfCalibrationKits/2;
-        int averageRssi;
-        List<AccessPoint> result = new ArrayList<>();
-
-        for (CalibrationAccessPoint calibrationAccessPoint : calibrationAccessPointList){
-            if (calibrationAccessPoint.getNumberOfRssiAdditions()>thresholdForNumberOfAPs){
-                averageRssi=calibrationAccessPoint.getRssiSum()/calibrationAccessPoint.getNumberOfRssiAdditions();
-                result.add(new AccessPoint(calibrationAccessPoint.getMac(), averageRssi));
-            }
-        }
-
-        return result;
+        return results;
     }
 
     // Выбор точек из базы с количеством совподений в MACs с набором от клиента >2
@@ -121,30 +83,61 @@ public class MainService {
 
         return result;
     }
-    private DefinedLocationPoint chooseLocationPointWithMinDelta(LocationPoint currentLocationPoint, List<LocationPoint> locationPoints){
-        DefinedLocationPoint result = new DefinedLocationPoint();
+    // выбираем точку из suitableLocationPoints с мнимальным евклидовым расстоянием для каждого входного набора currentLocationPoints
+    private List<DefinedLocationPoint> chooseLocationPointsWithMinDelta(List<LocationPoint> currentLocationPoints, List<LocationPoint> suitableLocationPoints){
+        List<DefinedLocationPoint> result = new ArrayList<>();
 
-        double minDelta = 0;
         final int maxDeltaRssi=45;
-        for (LocationPoint lp: locationPoints){
 
-            if (lp.getRoomName()==null) continue;
+        for (LocationPoint currentLocationPoint : currentLocationPoints) {
+            DefinedLocationPoint resultSingle = new DefinedLocationPoint();
+            double minDelta = 0;
 
-            double sum=0;
-            for (AccessPoint accessPoint: currentLocationPoint.getAccessPoints()){
-                AccessPoint foundAP = lp.findAPbyMAC(accessPoint.getMac());
-                if (foundAP!=null){
-                    sum+=Math.pow(foundAP.getRssi()-accessPoint.getRssi(), 2);
-                }else{
-                    sum+=Math.pow(maxDeltaRssi, 2);
+            for (LocationPoint suitableLP : suitableLocationPoints) {
+
+                if (suitableLP.getRoomName() == null) continue;
+
+                double sum = 0;
+                for (AccessPoint accessPoint : currentLocationPoint.getAccessPoints()) {
+                    AccessPoint foundAP = suitableLP.findAPbyMAC(accessPoint.getMac());
+                    if (foundAP != null) {
+                        sum += Math.pow(foundAP.getRssi() - accessPoint.getRssi(), 2);
+                    } else {
+                        sum += Math.pow(maxDeltaRssi, 2);
+                    }
+                }
+
+                double currentDelta = Math.pow(sum / currentLocationPoint.getAccessPoints().size(), 0.5);
+                if (minDelta == 0 || minDelta > currentDelta) {
+                    minDelta = currentDelta;
+                    resultSingle.setSteps(resultSingle.getSteps() + "minDelta:" + minDelta + ";" + suitableLP.getRoomName() + "\n");
+                    resultSingle.setRoomName(suitableLP.getRoomName());
                 }
             }
-            
-            double currentDelta=Math.pow(sum/currentLocationPoint.getAccessPoints().size(),0.5);
-            if (minDelta==0 || minDelta>currentDelta){
-                minDelta=currentDelta;
-                result.setSteps(result.getSteps()+"minDelta:"+minDelta+";"+lp.getRoomName()+"\n");
-                result.setRoomName(lp.getRoomName());
+        }
+
+        return result;
+    }
+    // из списка определённых точек выбираем ту, которая встречается чаще
+    private DefinedLocationPoint chooseMostCommon(List<DefinedLocationPoint> definedLocationPoints){
+        int maxNumberOfMatches = 0;
+        DefinedLocationPoint result = null;
+
+        List<String> allNames = new LinkedList<>();
+        for (DefinedLocationPoint currentDLP : definedLocationPoints){
+            allNames.add(currentDLP.getRoomName());
+        }
+
+        for (DefinedLocationPoint currentDLP : definedLocationPoints){
+
+            int currentNumberOfMatches=0;
+            for (String currentName: allNames){
+                if (currentName.equals(currentDLP.getRoomName())) currentNumberOfMatches++;
+            }
+
+            if (currentNumberOfMatches>maxNumberOfMatches || maxNumberOfMatches==0){
+                result=currentDLP;
+                maxNumberOfMatches=currentNumberOfMatches;
             }
         }
 
@@ -154,10 +147,10 @@ public class MainService {
     /*
     =============Методы сохранения/удаления/получения доп.инфы=============
      */
-    public LocationPoint savePointWithoutCoordinates(CalibrationLocationPoint calibrationLocationPoint){
-        LocationPoint result = smoothPointOfCalibration(calibrationLocationPoint);
+    public List<LocationPoint> savePointWithoutCoordinates(CalibrationLocationPoint calibrationLocationPoint){
+        List<LocationPoint> result = splitPointOfCalibration(calibrationLocationPoint);
         System.out.println("Location point saved with data: "+result.toString());
-        locationPointRepository.save(result);
+        locationPointRepository.saveAll(result);
         return result;
     }
 

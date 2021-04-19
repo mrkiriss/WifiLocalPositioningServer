@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/location")
 public class MainController {
@@ -38,9 +40,9 @@ public class MainController {
     public ResponseEntity<?> addRoomWithoutCoordinates(@RequestBody CalibrationLocationPoint calibrationLocationPoint){
         try {
             System.out.println("Запрос на добавление точки");
-            LocationPoint locationPoint = mainService.savePointWithoutCoordinates(calibrationLocationPoint);
+            List<LocationPoint> locationPoints = mainService.savePointWithoutCoordinates(calibrationLocationPoint);
             StringResponse response = new StringResponse();
-            response.setResponse(locationPoint.toString());
+            response.setResponse("Number of added lps: "+locationPoints.size()+"\n"+locationPoints.toString());
             return ResponseEntity.ok(response);
         } catch (Exception e){
             e.printStackTrace();
