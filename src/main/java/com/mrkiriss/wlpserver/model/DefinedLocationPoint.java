@@ -6,8 +6,9 @@ import lombok.Data;
 public class DefinedLocationPoint {
     private float x;
     private float y;
-    private String roomName;
     private int floorId;
+    private String roomName;
+
     private String steps;
 }
 

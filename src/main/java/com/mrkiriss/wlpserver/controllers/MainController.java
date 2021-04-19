@@ -1,6 +1,7 @@
 package com.mrkiriss.wlpserver.controllers;
 
 import com.mrkiriss.wlpserver.entity.LocationPoint;
+import com.mrkiriss.wlpserver.entity.LocationPointInfo;
 import com.mrkiriss.wlpserver.model.CalibrationLocationPoint;
 import com.mrkiriss.wlpserver.model.DefinedLocationPoint;
 import com.mrkiriss.wlpserver.model.StringResponse;
@@ -29,37 +30,32 @@ public class MainController {
             return ResponseEntity.ok(resultPoint);
         } catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
         }
     }
 
     @PostMapping("/training/room/aps")
     public ResponseEntity<?> addRoomWithoutCoordinates(@RequestBody CalibrationLocationPoint calibrationLocationPoint){
         try {
-            System.out.println("Запрос на добавление точки по кабинету");
-            LocationPoint locationPoint = mainService.savePointToBase(calibrationLocationPoint);
-            System.out.println("Запрос обработан успешно\n");
+            System.out.println("Запрос на добавление точки");
+            LocationPoint locationPoint = mainService.savePointWithoutCoordinates(calibrationLocationPoint);
             StringResponse response = new StringResponse();
             response.setResponse(locationPoint.toString());
             return ResponseEntity.ok(response);
         } catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
         }
     }
 
     @PostMapping("/training/room/coordinates")
-    public ResponseEntity<?> addRoomCoordinates(@RequestBody CalibrationLocationPoint calibrationLocationPoint){
+    public ResponseEntity<?> addRoomCoordinates(@RequestBody LocationPointInfo locationPointInfo){
         try {
-            System.out.println("Запрос на добавление точки по кабинету");
-            LocationPoint locationPoint = mainService.savePointToBase(calibrationLocationPoint);
-            System.out.println("Запрос обработан успешно\n");
-            StringResponse response = new StringResponse();
-            response.setResponse(locationPoint.toString());
-            return ResponseEntity.ok(response);
+            System.out.println("Запрос на добавление координат точки");
+            return ResponseEntity.ok(mainService.savePointCoordinates(locationPointInfo));
         } catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
         }
     }
 
@@ -68,14 +64,12 @@ public class MainController {
         try {
             System.out.println("Запрос на очистку сервера");
             StringResponse response = new StringResponse();
-            response.setResponse("NumberOfLocationPoints="+mainService.clearServerDB());
+            response.setResponse("Количество LP после="+mainService.clearServerDB());
             System.out.println("Запрос обработан успешно");
             return ResponseEntity.ok(response);
         } catch (Exception e){
             e.printStackTrace();
-            StringResponse response = new StringResponse();
-            response.setResponse(e.getMessage());
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
         }
     }
 }

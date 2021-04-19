@@ -2,13 +2,14 @@ package com.mrkiriss.wlpserver.services;
 
 import com.mrkiriss.wlpserver.entity.AccessPoint;
 import com.mrkiriss.wlpserver.entity.LocationPoint;
+import com.mrkiriss.wlpserver.entity.LocationPointInfo;
 import com.mrkiriss.wlpserver.model.CalibrationAccessPoint;
 import com.mrkiriss.wlpserver.model.CalibrationLocationPoint;
 import com.mrkiriss.wlpserver.model.DefinedLocationPoint;
-import com.mrkiriss.wlpserver.model.DeltaLocationPoint;
+import com.mrkiriss.wlpserver.model.StringResponse;
 import com.mrkiriss.wlpserver.repositories.AccessPointRepository;
+import com.mrkiriss.wlpserver.repositories.LPInfoRepository;
 import com.mrkiriss.wlpserver.repositories.LocationPointRepository;
-import com.sun.istack.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +22,28 @@ public class MainService {
     LocationPointRepository locationPointRepository;
     @Autowired
     AccessPointRepository accessPointRepository;
+    @Autowired
+    LPInfoRepository lpInfoRepository;
 
+    /*
+    =============Методы определения=============
+     */
     public DefinedLocationPoint definedLocationPointWithRoom(CalibrationLocationPoint calibrationLocationPoint){
 
+        // сглаживаем входные данные
         LocationPoint smoothedLocationPoint = smoothPointOfCalibration(calibrationLocationPoint);
         if (smoothedLocationPoint.getAccessPoints().size()==0) return null;
+        // подбираем все возможные точки (по количеству совпадающих AP)
         List<LocationPoint> possibleLocations = chooseAllSuitableLocationPoints(smoothedLocationPoint.collectMACs()); // возможные
+        // выбираем точку с минимальным евклидовым расстоянием
+        DefinedLocationPoint result = chooseLocationPointWithMinDelta(smoothedLocationPoint, possibleLocations);
+        // дополняем результат данными для карты
+        LocationPointInfo resultInfo = lpInfoRepository.findByRoomName(result.getRoomName());
+        result.setX(resultInfo.getX());
+        result.setY(resultInfo.getY());
+        result.setFloorId(resultInfo.getFloorId());
 
-        return chooseLocationPointWithMinDelta(smoothedLocationPoint, possibleLocations);
+        return result;
     }
 
     private LocationPoint smoothPointOfCalibration(CalibrationLocationPoint calibrationLocationPoint){
@@ -136,11 +151,27 @@ public class MainService {
         return result;
     }
 
-    public LocationPoint savePointToBase(CalibrationLocationPoint calibrationLocationPoint){
+    /*
+    =============Методы сохранения/удаления/получения доп.инфы=============
+     */
+    public LocationPoint savePointWithoutCoordinates(CalibrationLocationPoint calibrationLocationPoint){
         LocationPoint result = smoothPointOfCalibration(calibrationLocationPoint);
         System.out.println("Location point saved with data: "+result.toString());
         locationPointRepository.save(result);
         return result;
+    }
+
+    public StringResponse savePointCoordinates(LocationPointInfo locationPointInfo){
+        String info="";
+        if (lpInfoRepository.findByRoomName(locationPointInfo.getRoomName())!=null){
+            lpInfoRepository.deleteByRoomName(locationPointInfo.getRoomName());
+            info+="The data is updated\n";
+        }
+
+        lpInfoRepository.save(locationPointInfo);
+
+        info+=locationPointInfo.toString();
+        return new StringResponse(info);
     }
 
     public int clearServerDB(){
