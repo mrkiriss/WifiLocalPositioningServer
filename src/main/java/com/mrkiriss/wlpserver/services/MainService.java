@@ -40,6 +40,14 @@ public class MainService {
         DefinedLocationPoint result = chooseMostCommon(preResult);
         // дополняем результат данными для карты
         LocationPointInfo resultInfo = lpInfoRepository.findByRoomName(result.getRoomName());
+
+        if (resultInfo==null){
+            resultInfo=new LocationPointInfo();
+            resultInfo.setX(-1);
+            resultInfo.setY(-1);
+            resultInfo.setFloorId(-1);
+        }
+
         result.setX(resultInfo.getX());
         result.setY(resultInfo.getY());
         result.setFloorId(resultInfo.getFloorId());
@@ -85,13 +93,17 @@ public class MainService {
     }
     // выбираем точку из suitableLocationPoints с мнимальным евклидовым расстоянием для каждого входного набора currentLocationPoints
     private List<DefinedLocationPoint> chooseLocationPointsWithMinDelta(List<LocationPoint> currentLocationPoints, List<LocationPoint> suitableLocationPoints){
+        System.out.println("Started chooseLocationPointsWithMinDelta");
+        System.out.println("currentLocationPoints\n"+currentLocationPoints);
+        System.out.println("suitableLocationPoints\n"+suitableLocationPoints);
+
         List<DefinedLocationPoint> result = new ArrayList<>();
 
         final int maxDeltaRssi=45;
 
         for (LocationPoint currentLocationPoint : currentLocationPoints) {
             DefinedLocationPoint resultSingle = new DefinedLocationPoint();
-            double minDelta = 0;
+            double minDelta = Double.MAX_VALUE;
 
             for (LocationPoint suitableLP : suitableLocationPoints) {
 
@@ -108,12 +120,14 @@ public class MainService {
                 }
 
                 double currentDelta = Math.pow(sum / currentLocationPoint.getAccessPoints().size(), 0.5);
-                if (minDelta == 0 || minDelta > currentDelta) {
+                if (minDelta > currentDelta) {
                     minDelta = currentDelta;
                     resultSingle.setSteps(resultSingle.getSteps() + "minDelta:" + minDelta + ";" + suitableLP.getRoomName() + "\n");
                     resultSingle.setRoomName(suitableLP.getRoomName());
                 }
             }
+
+            result.add(resultSingle);
         }
 
         return result;
@@ -122,6 +136,7 @@ public class MainService {
     private DefinedLocationPoint chooseMostCommon(List<DefinedLocationPoint> definedLocationPoints){
         int maxNumberOfMatches = 0;
         DefinedLocationPoint result = null;
+        System.out.println(definedLocationPoints);
 
         List<String> allNames = new LinkedList<>();
         for (DefinedLocationPoint currentDLP : definedLocationPoints){
