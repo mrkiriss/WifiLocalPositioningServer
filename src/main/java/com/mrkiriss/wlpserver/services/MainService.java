@@ -77,14 +77,14 @@ public class MainService {
         List<LocationPoint> result = new ArrayList<>();
         List<String> possiblesMacsCollection;
 
-        System.out.println("Текущий набор MAC\n"+currentMacsCollection.toString());
+        //System.out.println("Текущий набор MAC\n"+currentMacsCollection.toString());
 
         for (LocationPoint possibleLP: locationPointRepository.findAll()){
             possiblesMacsCollection=possibleLP.collectMACs();
-            System.out.println("Воможный набор до\n"+possiblesMacsCollection.toString());
+            //System.out.println("Воможный набор до\n"+possiblesMacsCollection.toString());
 
             possiblesMacsCollection.retainAll(currentMacsCollection);
-            System.out.println("Воможный набор после\n"+possiblesMacsCollection.toString());
+            //System.out.println("Воможный набор после\n"+possiblesMacsCollection.toString());
 
             if (possiblesMacsCollection.size()>2) result.add(possibleLP);
         }
