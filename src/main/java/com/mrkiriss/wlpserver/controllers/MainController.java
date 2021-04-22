@@ -20,7 +20,7 @@ public class MainController {
     private MainService mainService;
 
     @PostMapping("/define/room")
-    public ResponseEntity<?> getLocationPointWithRoom(@RequestBody CalibrationLocationPoint calibrationLocationPoint){
+    public ResponseEntity<DefinedLocationPoint> getLocationPointWithRoom(@RequestBody CalibrationLocationPoint calibrationLocationPoint){
         try {
             System.out.println("Запрос на определение местоположения");
             DefinedLocationPoint resultPoint = mainService.definedLocationPointWithRoom(calibrationLocationPoint);
