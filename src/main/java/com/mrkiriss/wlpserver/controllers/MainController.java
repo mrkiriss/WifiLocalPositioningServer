@@ -24,15 +24,21 @@ public class MainController {
         try {
             System.out.println("Запрос на определение местоположения");
             DefinedLocationPoint resultPoint = mainService.definedLocationPointWithRoom(calibrationLocationPoint);
+
             if (resultPoint==null){
                 System.out.println("Местоположение не оределено - пустой результат");
-                return ResponseEntity.notFound().build();
+                resultPoint=new DefinedLocationPoint();
+                resultPoint.setSteps("Местоположение не оределено - пустой результат");
+                return ResponseEntity.badRequest().body(resultPoint);
             }
+            resultPoint.setSteps(resultPoint.getSteps()+"Местоположение оределено успешно");
             System.out.println("Местоположение оределено успешно");
             return ResponseEntity.ok(resultPoint);
         } catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
+            DefinedLocationPoint errorResult = new DefinedLocationPoint();
+            errorResult.setSteps(e.getMessage());
+            return ResponseEntity.badRequest().body(errorResult);
         }
     }
 

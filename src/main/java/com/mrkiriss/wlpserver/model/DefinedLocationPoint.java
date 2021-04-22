@@ -9,6 +9,6 @@ public class DefinedLocationPoint {
     private int floorId;
     private String roomName;
 
-    private String steps;
+    private String steps="";
 }
 
