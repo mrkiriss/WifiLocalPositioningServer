@@ -33,7 +33,13 @@ public class MainService {
         List<LocationPoint> splitLPs = splitPointOfCalibration(calibrationLocationPoint);
         // подбираем все возможные точки (по количеству совпадающих AP)
         if (splitLPs.size()==0) return null;
-        List<LocationPoint> possibleLocations = chooseAllSuitableLocationPoints(splitLPs.get(splitLPs.size()-1).collectMACs());
+        Set<LocationPoint> possibleLocationsSet = new HashSet<>();
+        for (LocationPoint locationPoint: splitLPs) {
+            possibleLocationsSet.addAll(chooseAllSuitableLocationPoints(locationPoint.collectMACs()));
+        }
+
+        List<LocationPoint> possibleLocations = new LinkedList<>(possibleLocationsSet);
+
         // выбираем для каждого набора точку с минимальным евклидовым расстоянием
         List<DefinedLocationPoint> preResult = chooseLocationPointsWithMinDelta(splitLPs, possibleLocations);
         // выбираем самую частовстречаемую точку
@@ -94,7 +100,7 @@ public class MainService {
     // выбираем точку из suitableLocationPoints с мнимальным евклидовым расстоянием для каждого входного набора currentLocationPoints
     private List<DefinedLocationPoint> chooseLocationPointsWithMinDelta(List<LocationPoint> currentLocationPoints, List<LocationPoint> suitableLocationPoints){
         System.out.println("Started chooseLocationPointsWithMinDelta");
-        System.out.println("currentLocationPoints\n"+currentLocationPoints);
+        System.out.println("currentLocationPoints: "+currentLocationPoints);
         System.out.println("suitableLocationPoints: "+suitableLocationPoints);
 
         List<DefinedLocationPoint> result = new ArrayList<>();
