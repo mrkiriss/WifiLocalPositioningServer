@@ -33,9 +33,14 @@ public class MainService {
         List<LocationPoint> splitLPs = splitPointOfCalibration(calibrationLocationPoint);
         // подбираем все возможные точки (по количеству совпадающих AP)
         if (splitLPs.size()==0) return null;
+
         Set<LocationPoint> possibleLocationsSet = new HashSet<>();
-        for (LocationPoint locationPoint: splitLPs) {
-            possibleLocationsSet.addAll(chooseAllSuitableLocationPoints(locationPoint.collectMACs()));
+        Set<Integer> indexes = new HashSet<>();
+        indexes.add(0);
+        indexes.add(splitLPs.size()-1);
+        indexes.add(splitLPs.size()/2);
+        for (Integer index: indexes){
+            possibleLocationsSet.addAll(chooseAllSuitableLocationPoints(splitLPs.get(index).collectMACs()));
         }
 
         List<LocationPoint> possibleLocations = new LinkedList<>(possibleLocationsSet);
@@ -78,7 +83,7 @@ public class MainService {
     // Выбор точек из базы с количеством совподений в MACs с набором от клиента >2
     private List<LocationPoint> chooseAllSuitableLocationPoints(List<String> currentMacsCollection){
         //locationPointRepository.findAllSuitableByMacCount(smoothedLocationPoint.collectMACs())
-        System.out.println("--Выбор точек из базы с количеством совподений в MACs с набором от клиента >2--");
+        //System.out.println("--Выбор точек из базы с количеством совподений в MACs с набором от клиента >2--");
 
         List<LocationPoint> result = new ArrayList<>();
         List<String> possiblesMacsCollection;
@@ -99,9 +104,9 @@ public class MainService {
     }
     // выбираем точку из suitableLocationPoints с мнимальным евклидовым расстоянием для каждого входного набора currentLocationPoints
     private List<DefinedLocationPoint> chooseLocationPointsWithMinDelta(List<LocationPoint> currentLocationPoints, List<LocationPoint> suitableLocationPoints){
-        System.out.println("Started chooseLocationPointsWithMinDelta");
+        /*System.out.println("Started chooseLocationPointsWithMinDelta");
         System.out.println("currentLocationPoints: "+currentLocationPoints);
-        System.out.println("suitableLocationPoints: "+suitableLocationPoints);
+        System.out.println("suitableLocationPoints: "+suitableLocationPoints);*/
 
         List<DefinedLocationPoint> result = new ArrayList<>();
 
@@ -128,7 +133,7 @@ public class MainService {
                 double currentDelta = Math.pow(sum / currentLocationPoint.getAccessPoints().size(), 0.5);
                 if (minDelta > currentDelta) {
                     minDelta = currentDelta;
-                    resultSingle.setSteps(resultSingle.getSteps() + "minDelta:" + minDelta + ";" + suitableLP.getRoomName() + "\n");
+                    //resultSingle.setSteps(resultSingle.getSteps() + "minDelta:" + minDelta + ";" + suitableLP.getRoomName() + "\n");
                     resultSingle.setRoomName(suitableLP.getRoomName());
                 }
             }
@@ -142,7 +147,7 @@ public class MainService {
     private DefinedLocationPoint chooseMostCommon(List<DefinedLocationPoint> definedLocationPoints){
         int maxNumberOfMatches = 0;
         DefinedLocationPoint result = null;
-        System.out.println("from chooseMostCommon: "+definedLocationPoints);
+        //System.out.println("from chooseMostCommon: "+definedLocationPoints);
 
         List<String> allNames = new LinkedList<>();
         for (DefinedLocationPoint currentDLP : definedLocationPoints){
@@ -164,7 +169,7 @@ public class MainService {
         }
 
         if (result==null) result=new DefinedLocationPoint();
-        result.setSteps(result.getSteps()+allNames.toString());
+        //result.setSteps(result.getSteps()+allNames.toString());
         return result;
     }
 
@@ -173,7 +178,7 @@ public class MainService {
      */
     public List<LocationPoint> savePointWithoutCoordinates(CalibrationLocationPoint calibrationLocationPoint){
         List<LocationPoint> result = splitPointOfCalibration(calibrationLocationPoint);
-        System.out.println("Location point saved with data: "+result.toString());
+       // System.out.println("Location point saved with data: "+result.toString());
         locationPointRepository.saveAll(result);
         return result;
     }
