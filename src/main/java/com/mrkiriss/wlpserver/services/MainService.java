@@ -136,7 +136,7 @@ public class MainService {
     private DefinedLocationPoint chooseMostCommon(List<DefinedLocationPoint> definedLocationPoints){
         int maxNumberOfMatches = 0;
         DefinedLocationPoint result = null;
-        System.out.println(definedLocationPoints);
+        System.out.println("from chooseMostCommon: "+definedLocationPoints);
 
         List<String> allNames = new LinkedList<>();
         for (DefinedLocationPoint currentDLP : definedLocationPoints){
@@ -147,6 +147,7 @@ public class MainService {
 
             int currentNumberOfMatches=0;
             for (String currentName: allNames){
+                if (currentName==null) continue;
                 if (currentName.equals(currentDLP.getRoomName())) currentNumberOfMatches++;
             }
 

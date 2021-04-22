@@ -39,7 +39,7 @@ public class MainController {
             e.printStackTrace();
             DefinedLocationPoint errorResult = new DefinedLocationPoint();
             errorResult.setSteps(e.getMessage());
-            return ResponseEntity.badRequest().body(errorResult);
+            return ResponseEntity.ok(errorResult);
         }
     }
 
