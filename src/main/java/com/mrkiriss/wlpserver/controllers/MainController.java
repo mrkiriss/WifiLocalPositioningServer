@@ -29,8 +29,9 @@ public class MainController {
                 System.out.println("Местоположение не оределено - пустой результат");
                 resultPoint=new DefinedLocationPoint();
                 resultPoint.setSteps("Местоположение не оределено - пустой результат");
-                return ResponseEntity.badRequest().body(resultPoint);
+                return ResponseEntity.ok(resultPoint);
             }
+
             resultPoint.setSteps(resultPoint.getSteps()+"Местоположение оределено успешно");
             System.out.println("Местоположение оределено успешно");
             return ResponseEntity.ok(resultPoint);

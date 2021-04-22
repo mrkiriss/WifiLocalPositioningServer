@@ -95,7 +95,7 @@ public class MainService {
     private List<DefinedLocationPoint> chooseLocationPointsWithMinDelta(List<LocationPoint> currentLocationPoints, List<LocationPoint> suitableLocationPoints){
         System.out.println("Started chooseLocationPointsWithMinDelta");
         System.out.println("currentLocationPoints\n"+currentLocationPoints);
-        System.out.println("suitableLocationPoints\n"+suitableLocationPoints);
+        System.out.println("suitableLocationPoints: "+suitableLocationPoints);
 
         List<DefinedLocationPoint> result = new ArrayList<>();
 
@@ -156,6 +156,8 @@ public class MainService {
             }
         }
 
+        if (result==null) result=new DefinedLocationPoint();
+        result.setSteps(result.getSteps()+allNames.toString());
         return result;
     }
 
