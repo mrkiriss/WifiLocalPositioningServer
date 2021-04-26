@@ -5,6 +5,7 @@ import com.mrkiriss.wlpserver.entity.LocationPoint;
 import com.mrkiriss.wlpserver.entity.LocationPointInfo;
 import com.mrkiriss.wlpserver.model.CalibrationLocationPoint;
 import com.mrkiriss.wlpserver.model.DefinedLocationPoint;
+import com.mrkiriss.wlpserver.model.ListOfAllMapPoints;
 import com.mrkiriss.wlpserver.model.StringResponse;
 import com.mrkiriss.wlpserver.repositories.AccessPointRepository;
 import com.mrkiriss.wlpserver.repositories.LPInfoRepository;
@@ -206,5 +207,13 @@ public class MainService {
             number++;
         }
         return number;
+    }
+
+    public ListOfAllMapPoints getListOfLPInfo(){
+        ListOfAllMapPoints result = new ListOfAllMapPoints();
+        ArrayList actualList = new ArrayList();
+        lpInfoRepository.findAll().iterator().forEachRemaining(actualList::add);
+        result.setLocationPointInfos(actualList);
+        return result;
     }
 }

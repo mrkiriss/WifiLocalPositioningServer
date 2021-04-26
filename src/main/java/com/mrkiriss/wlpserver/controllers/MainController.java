@@ -4,6 +4,7 @@ import com.mrkiriss.wlpserver.entity.LocationPoint;
 import com.mrkiriss.wlpserver.entity.LocationPointInfo;
 import com.mrkiriss.wlpserver.model.CalibrationLocationPoint;
 import com.mrkiriss.wlpserver.model.DefinedLocationPoint;
+import com.mrkiriss.wlpserver.model.ListOfAllMapPoints;
 import com.mrkiriss.wlpserver.model.StringResponse;
 import com.mrkiriss.wlpserver.services.MainService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,19 @@ public class MainController {
             DefinedLocationPoint errorResult = new DefinedLocationPoint();
             errorResult.setSteps(e.getMessage());
             return ResponseEntity.ok(errorResult);
+        }
+    }
+
+    @GetMapping("/define/room/coordinates")
+    public ResponseEntity<?> getListOfLPInfo(){
+        try{
+            ListOfAllMapPoints listOfAllMapPoints = mainService.getListOfLPInfo();
+            if (listOfAllMapPoints==null) throw new Exception();
+            System.out.println("Запрос на получение всех информаций о точках успешено завершён");
+            return ResponseEntity.ok(listOfAllMapPoints);
+        }catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
         }
     }
 
