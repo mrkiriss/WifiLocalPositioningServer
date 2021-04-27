@@ -83,7 +83,7 @@ public class MainController {
     }
 
     @DeleteMapping("/training/room/coordinates")
-    public ResponseEntity<StringResponse> deleteRoomCoordinates(@RequestBody String roomName){
+    public ResponseEntity<StringResponse> deleteRoomCoordinates(@RequestParam String roomName){
         try{
             System.out.println("Удаление инф. части точки началось");
             StringResponse response = mainService.deleteLocationPointInfo(roomName);
@@ -94,7 +94,7 @@ public class MainController {
             return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));        }
     }
     @DeleteMapping("/training/room/aps")
-    public ResponseEntity<StringResponse> deleteRoomLocationPoint(@RequestBody String roomName){
+    public ResponseEntity<StringResponse> deleteRoomLocationPoint(@RequestParam String roomName){
         try{
             System.out.println("Удаление точки началось");
             StringResponse response = mainService.deleteLocationPoint(roomName);
