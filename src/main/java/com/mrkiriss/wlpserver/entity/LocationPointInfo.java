@@ -18,5 +18,5 @@ public class LocationPointInfo {
     private int floorId;
     private int x;
     private int y;
-    private boolean isRoom; // иначе коридор (для создания маршрута)
+   // private boolean isRoom; // иначе коридор (для создания маршрута)
 }
