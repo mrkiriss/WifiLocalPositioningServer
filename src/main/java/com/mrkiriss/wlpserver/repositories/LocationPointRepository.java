@@ -9,5 +9,5 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RepositoryRestResource(collectionResourceRel = "locationPoints", path = "locationPoints")
 public interface LocationPointRepository extends CrudRepository<LocationPoint, Long>{
-    LocationPoint findByRoomName(String romName);
+    LocationPoint findByRoomName(String roomName);
 }

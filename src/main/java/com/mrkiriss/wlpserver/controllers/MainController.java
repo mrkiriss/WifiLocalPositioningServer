@@ -91,7 +91,7 @@ public class MainController {
             return ResponseEntity.ok(response);
         }catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));        }
+            return ResponseEntity.ok(new StringResponse(e.getMessage()));        }
     }
     @DeleteMapping("/training/room/aps")
     public ResponseEntity<StringResponse> deleteRoomLocationPoint(@RequestParam String roomName){
@@ -102,7 +102,7 @@ public class MainController {
             return ResponseEntity.ok(response);
         }catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));        }
+            return ResponseEntity.ok(new StringResponse(e.getMessage()));        }
     }
 
     @DeleteMapping
