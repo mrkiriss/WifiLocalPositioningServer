@@ -226,11 +226,11 @@ public class MainService {
         return new StringResponse("Информация о точке"+lp.toString()+" успешно удалена");
     }
     public StringResponse deleteLocationPoint(String roomName){
-        LocationPoint lp= locationPointRepository.findByRoomName(roomName);
+        List<LocationPoint> lp= locationPointRepository.findAllByRoomName(roomName);
         if (lp==null){
             return new StringResponse("Информация о точке не найдена");
         }
-        locationPointRepository.delete(lp);
+        locationPointRepository.deleteAll(lp);
         return new StringResponse("Информация о сканированиях"+lp.toString()+" успешно удалена");
     }
 }
