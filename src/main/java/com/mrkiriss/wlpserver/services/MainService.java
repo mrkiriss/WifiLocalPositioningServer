@@ -184,7 +184,7 @@ public class MainService {
         return result;
     }
 
-    public StringResponse savePointCoordinates(LocationPointInfo locationPointInfo){
+    public StringResponse saveLocationPointInfo(LocationPointInfo locationPointInfo){
         String info="";
         if (lpInfoRepository.findByRoomName(locationPointInfo.getRoomName())!=null){
             lpInfoRepository.deleteByRoomName(locationPointInfo.getRoomName());
@@ -215,5 +215,16 @@ public class MainService {
         lpInfoRepository.findAll().iterator().forEachRemaining(actualList::add);
         result.setLocationPointInfos(actualList);
         return result;
+    }
+
+    public StringResponse deleteLocationPointInfo(String roomName){
+        LocationPointInfo lp= lpInfoRepository.findByRoomName(roomName);
+        lpInfoRepository.delete(lp);
+        return new StringResponse("Информация "+lp.toString()+" успешно удалена");
+    }
+    public StringResponse deleteLocationPoint(String roomName){
+        LocationPoint lp= locationPointRepository.findByRoomName(roomName);
+        locationPointRepository.delete(lp);
+        return new StringResponse("Информация "+lp.toString()+" успешно удалена");
     }
 }

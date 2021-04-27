@@ -17,4 +17,5 @@ public interface LocationPointRepository extends CrudRepository<LocationPoint, L
 
     @Query(value = "SELECT lp FROM location_point lp WHERE (SELECT COUNT(*) FROM ((SELECT mac FROM lp.access_point) INTERSECT (:apNames)))>2", nativeQuery = true)
     List<LocationPoint> findAllSuitableByMacCount(@Param("apNames") List<String> apNames);
+    LocationPoint findByRoomName(String romName);
 }

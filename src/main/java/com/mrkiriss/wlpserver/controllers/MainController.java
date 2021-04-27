@@ -75,11 +75,34 @@ public class MainController {
     public ResponseEntity<?> addRoomCoordinates(@RequestBody LocationPointInfo locationPointInfo){
         try {
             System.out.println("Запрос на добавление координат точки");
-            return ResponseEntity.ok(mainService.savePointCoordinates(locationPointInfo));
+            return ResponseEntity.ok(mainService.saveLocationPointInfo(locationPointInfo));
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
         }
+    }
+
+    @DeleteMapping("/training/room/coordinates")
+    public ResponseEntity<StringResponse> deleteRoomCoordinates(@RequestBody String roomName){
+        try{
+            System.out.println("Удаление инф. части точки началось");
+            StringResponse response = mainService.deleteLocationPointInfo(roomName);
+            System.out.println("Удаление инф. части точки прошло успешно");
+            return ResponseEntity.ok(response);
+        }catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));        }
+    }
+    @DeleteMapping("/training/room/aps")
+    public ResponseEntity<StringResponse> deleteRoomLocationPoint(@RequestBody String roomName){
+        try{
+            System.out.println("Удаление точки началось");
+            StringResponse response = mainService.deleteLocationPoint(roomName);
+            System.out.println("Удаление точки прошло успешно");
+            return ResponseEntity.ok(response);
+        }catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));        }
     }
 
     @DeleteMapping
