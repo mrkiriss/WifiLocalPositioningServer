@@ -2,15 +2,13 @@ package com.mrkiriss.wlpserver.controllers;
 
 import com.mrkiriss.wlpserver.entity.LocationPoint;
 import com.mrkiriss.wlpserver.entity.LocationPointInfo;
-import com.mrkiriss.wlpserver.model.CalibrationLocationPoint;
-import com.mrkiriss.wlpserver.model.DefinedLocationPoint;
-import com.mrkiriss.wlpserver.model.ListOfAllMapPoints;
-import com.mrkiriss.wlpserver.model.StringResponse;
+import com.mrkiriss.wlpserver.model.*;
 import com.mrkiriss.wlpserver.services.MainService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.management.remote.rmi.RMIConnectionImpl_Stub;
 import java.util.List;
 
 @RestController
@@ -105,17 +103,16 @@ public class MainController {
             return ResponseEntity.ok(new StringResponse(e.getMessage()));        }
     }
 
-    @DeleteMapping
-    public ResponseEntity<?> clearServer(){
-        try {
-            System.out.println("Запрос на очистку сервера");
-            StringResponse response = new StringResponse();
-            response.setResponse("Количество LP после="+mainService.clearServerDB());
-            System.out.println("Запрос обработан успешно");
+    @PostMapping("/training/connections")
+    public ResponseEntity<StringResponse> processConnections(@RequestBody Connections connections){
+        try{
+            System.out.println("Началась оработка связей");
+            StringResponse response = mainService.processConnections(connections);
+            System.out.println("Связи успешно оработаны\n"+response.getResponse());
             return ResponseEntity.ok(response);
-        } catch (Exception e){
+        }catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
+            return ResponseEntity.ok(new StringResponse(e.getMessage()));
         }
     }
 }

@@ -1,13 +1,12 @@
 package com.mrkiriss.wlpserver.services;
 
 import com.mrkiriss.wlpserver.entity.AccessPoint;
+import com.mrkiriss.wlpserver.entity.Connection;
 import com.mrkiriss.wlpserver.entity.LocationPoint;
 import com.mrkiriss.wlpserver.entity.LocationPointInfo;
-import com.mrkiriss.wlpserver.model.CalibrationLocationPoint;
-import com.mrkiriss.wlpserver.model.DefinedLocationPoint;
-import com.mrkiriss.wlpserver.model.ListOfAllMapPoints;
-import com.mrkiriss.wlpserver.model.StringResponse;
+import com.mrkiriss.wlpserver.model.*;
 import com.mrkiriss.wlpserver.repositories.AccessPointRepository;
+import com.mrkiriss.wlpserver.repositories.ConnectionRepository;
 import com.mrkiriss.wlpserver.repositories.LPInfoRepository;
 import com.mrkiriss.wlpserver.repositories.LocationPointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +23,8 @@ public class MainService {
     AccessPointRepository accessPointRepository;
     @Autowired
     LPInfoRepository lpInfoRepository;
+    @Autowired
+    ConnectionRepository connectionRepository;
 
     /*
     =============Методы определения=============
@@ -183,7 +184,6 @@ public class MainService {
         locationPointRepository.saveAll(result);
         return result;
     }
-
     public StringResponse saveLocationPointInfo(LocationPointInfo locationPointInfo){
         String info="";
         if (lpInfoRepository.findByRoomName(locationPointInfo.getRoomName())!=null){
@@ -197,18 +197,7 @@ public class MainService {
         return new StringResponse(info);
     }
 
-    public int clearServerDB(){
-        locationPointRepository.deleteAll();
-        return getNUmberOfLocationPoints();
-    }
-    private int getNUmberOfLocationPoints(){
-        int number=0;
-        for(LocationPoint lp: locationPointRepository.findAll()) {
-            number++;
-        }
-        return number;
-    }
-
+    // для отображение точек на карте
     public ListOfAllMapPoints getListOfLPInfo(){
         ListOfAllMapPoints result = new ListOfAllMapPoints();
         ArrayList actualList = new ArrayList();
@@ -217,6 +206,7 @@ public class MainService {
         return result;
     }
 
+    // deleting mode
     public StringResponse deleteLocationPointInfo(String roomName){
         LocationPointInfo lp= lpInfoRepository.findByRoomName(roomName);
         if (lp==null){
@@ -232,5 +222,77 @@ public class MainService {
         }
         locationPointRepository.deleteAll(lp);
         return new StringResponse("Информация о сканированиях"+lp.toString()+" успешно удалена");
+    }
+
+    // connections mode
+    private final String MODE_SAVING="saving";
+    private final String MODE_DELETING="deleting";
+    private final String MODE_UNMODIFIED="unmodified";
+
+    public StringResponse processConnections(Connections connections){
+        Map<String, List<String>> moveInformation = new HashMap<>();
+        moveInformation.put(MODE_DELETING, new ArrayList<>());
+        moveInformation.put(MODE_SAVING, new ArrayList<>());
+        moveInformation.put(MODE_UNMODIFIED, new ArrayList<>());
+        String firstName=connections.getMainRoomName();
+
+        // определяем списка на удаление и добавление
+        List<String> currentConnections = getExistingConnectionsWithMain(connections.getMainRoomName());
+        List<String> modifiedConnections = connections.getSecondaryRoomNames();
+
+        List<String> unmodifiedConnections = new ArrayList<>(currentConnections);
+        unmodifiedConnections.retainAll(modifiedConnections);
+
+        currentConnections.removeAll(unmodifiedConnections); // будут удалены
+        modifiedConnections.removeAll(unmodifiedConnections); // будут добавлены
+
+        // проводим удаление
+        deleteConnections(firstName, currentConnections, moveInformation);
+        saveConnections(firstName, modifiedConnections, moveInformation);
+
+        return new StringResponse(moveInformation.toString());
+    }
+
+    private List<String> getExistingConnectionsWithMain(String mainName){
+        List<String> result = new ArrayList<>();
+
+        List<Connection> allConnectionsWithMain = new ArrayList<>();
+        allConnectionsWithMain.addAll(connectionRepository.findAllByFirstName(mainName));
+        allConnectionsWithMain.addAll(connectionRepository.findAllBySecondName(mainName));
+
+        // добаляем узел, связанный с главным mainName
+        for (Connection connection: allConnectionsWithMain){
+            result.add(connection.getFirstName().equals(mainName)?connection.getSecondName():connection.getFirstName());
+        }
+
+        return result;
+    }
+    private void deleteConnections(String firstName, List<String> secondNames, Map<String, List<String>> moveInformation){
+        String[] singleConnection;
+        for (String secondName:secondNames){
+            singleConnection=new String[]{firstName, secondName};
+            sortNames(singleConnection);
+            connectionRepository.deleteConnectionByFirstNameAndSecondName(singleConnection[0],singleConnection[1]);
+
+            saveStepInformation(singleConnection, MODE_DELETING, moveInformation);
+
+        }
+    }
+    private void saveConnections(String firstName, List<String> secondNames, Map<String, List<String>> moveInformation){
+        String[] singleConnection;
+        for (String secondName:secondNames){
+            singleConnection=new String[]{firstName, secondName};
+            sortNames(singleConnection);
+            connectionRepository.save(new Connection(singleConnection[0], singleConnection[1]));
+
+            saveStepInformation(singleConnection, MODE_SAVING, moveInformation);
+
+        }
+    }
+    private void sortNames(String[] names){
+        Arrays.sort(names);
+    }
+    private void saveStepInformation(String[] data, String mode, Map<String,List<String>> informationContainer){
+        informationContainer.get(mode).add(String.join("<->", data));
     }
 }
