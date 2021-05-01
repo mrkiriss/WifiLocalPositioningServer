@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.management.remote.rmi.RMIConnectionImpl_Stub;
 import java.util.List;
 
 @RestController
@@ -72,11 +71,11 @@ public class MainController {
     @PostMapping("/training/room/coordinates")
     public ResponseEntity<?> addRoomCoordinates(@RequestBody LocationPointInfo locationPointInfo){
         try {
-            System.out.println("Запрос на добавление координат точки");
+            System.out.println("Запрос на добавление координат точки "+locationPointInfo.toString());
             return ResponseEntity.ok(mainService.saveLocationPointInfo(locationPointInfo));
         } catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
+            return ResponseEntity.ok(new StringResponse(e.getMessage()));
         }
     }
 
@@ -106,11 +105,23 @@ public class MainController {
     @PostMapping("/training/connections")
     public ResponseEntity<StringResponse> processConnections(@RequestBody Connections connections){
         try{
-            System.out.println("Началась оработка связей");
+            System.out.println("Началась оработка связей: "+connections.getSecondaryRooms());
             StringResponse response = mainService.processConnections(connections);
-            System.out.println("Связи успешно оработаны\n"+response.getResponse());
+            System.out.println("Связи успешно оработаны: "+response.getResponse());
             return ResponseEntity.ok(response);
         }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(new StringResponse(e.getMessage()));
+        }
+    }
+    @GetMapping("/training/connections")
+    public ResponseEntity<?> getConnections(@RequestParam("name") String name){
+        try {
+            System.out.println("Началась получения связей по имени одного из узлов");
+            Connections response = mainService.downloadConnections(name);
+            System.out.println("Связи получен успешно и отправлены на сервер с данными: "+response.toString());
+            return ResponseEntity.ok(response);
+        }catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.ok(new StringResponse(e.getMessage()));
         }

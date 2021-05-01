@@ -233,15 +233,15 @@ public class MainService {
         Map<String, List<String>> moveInformation = new HashMap<>();
         moveInformation.put(MODE_DELETING, new ArrayList<>());
         moveInformation.put(MODE_SAVING, new ArrayList<>());
-        moveInformation.put(MODE_UNMODIFIED, new ArrayList<>());
         String firstName=connections.getMainRoomName();
 
         // определяем списка на удаление и добавление
         List<String> currentConnections = getExistingConnectionsWithMain(connections.getMainRoomName());
-        List<String> modifiedConnections = connections.getSecondaryRoomNames();
+        List<String> modifiedConnections = connections.getListOfNames();
 
         List<String> unmodifiedConnections = new ArrayList<>(currentConnections);
         unmodifiedConnections.retainAll(modifiedConnections);
+        moveInformation.put(MODE_UNMODIFIED, unmodifiedConnections);
 
         currentConnections.removeAll(unmodifiedConnections); // будут удалены
         modifiedConnections.removeAll(unmodifiedConnections); // будут добавлены
@@ -283,7 +283,8 @@ public class MainService {
         for (String secondName:secondNames){
             singleConnection=new String[]{firstName, secondName};
             sortNames(singleConnection);
-            connectionRepository.save(new Connection(singleConnection[0], singleConnection[1]));
+            Connection newConnection = new Connection(singleConnection[0], singleConnection[1]);
+            connectionRepository.save(newConnection);
 
             saveStepInformation(singleConnection, MODE_SAVING, moveInformation);
 
@@ -294,5 +295,18 @@ public class MainService {
     }
     private void saveStepInformation(String[] data, String mode, Map<String,List<String>> informationContainer){
         informationContainer.get(mode).add(String.join("<->", data));
+    }
+
+    public Connections downloadConnections(String name){
+        Connections result = new Connections();
+        result.setMainRoomName(name);
+        result.setSecondaryRooms(new ArrayList<>());
+
+        List<String> existingConnections = getExistingConnectionsWithMain(name);
+        for (String singleConnectionName: existingConnections){
+            result.getSecondaryRooms().add(lpInfoRepository.findByRoomName(singleConnectionName));
+        }
+
+        return result;
     }
 }

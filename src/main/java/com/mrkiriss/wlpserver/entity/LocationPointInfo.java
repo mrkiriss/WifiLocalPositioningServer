@@ -1,5 +1,6 @@
 package com.mrkiriss.wlpserver.entity;
 
+import com.sun.istack.NotNull;
 import lombok.Data;
 
 import javax.persistence.Entity;
@@ -18,5 +19,5 @@ public class LocationPointInfo {
     private int floorId;
     private int x;
     private int y;
-   // private boolean isRoom; // иначе коридор (для создания маршрута)
+    private String isRoom; // иначе коридор (для создания маршрута)
 }
