@@ -265,10 +265,12 @@ public class MainService {
         // удаляем информацию
         lpInfoRepository.delete(lp);
         // удаляем связи
-        deleteConnections(roomName);
+        String connections = deleteConnections(roomName);
         // удаляем сканирования
-        deleteLocationPoint(roomName);
-        return new StringResponse("Вся информация о точке"+lp.toString()+" успешно удалена");
+        String scans = deleteLocationPoint(roomName).getResponse();
+        return new StringResponse("Вся информация о точке "+lp.getRoomName()+" успешно удалена"+
+                "\nсвязи: "+connections+
+                "\nсканирования: "+scans);
     }
     public StringResponse deleteLocationPoint(String roomName){
         List<LocationPoint> lp= locationPointRepository.findAllByRoomName(roomName);
@@ -278,9 +280,11 @@ public class MainService {
         locationPointRepository.deleteAll(lp);
         return new StringResponse("Информация о сканированиях"+lp.toString()+" успешно удалена");
     }
-    private void deleteConnections(String roomName){
+    private String deleteConnections(String roomName){
+        String info = getExistingConnectionsWithMain(roomName).toString();
         connectionRepository.deleteAllByFirstName(roomName);
         connectionRepository.deleteAllBySecondName(roomName);
+        return info;
     }
 
     // connections mode
@@ -293,6 +297,8 @@ public class MainService {
         moveInformation.put(MODE_DELETING, new ArrayList<>());
         moveInformation.put(MODE_SAVING, new ArrayList<>());
         String firstName=connections.getMainRoomName();
+
+        if (firstName==null || lpInfoRepository.findByRoomName(firstName)==null) return new StringResponse("Ошибка, главной точки уже не существует");
 
         // определяем списка на удаление и добавление
         List<String> currentConnections = getExistingConnectionsWithMain(connections.getMainRoomName());
