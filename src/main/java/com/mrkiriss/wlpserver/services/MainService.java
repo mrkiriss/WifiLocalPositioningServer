@@ -187,6 +187,7 @@ public class MainService {
         if (current.equals(end)){         // прибытие к точке назначения
             return route;
         }
+        List<List<String>> results = new ArrayList<>();
         for (String name: getExistingConnectionsWithMain(current)){
             if (route.contains(name)) continue; // точка была пройдена ранее, петля
 
@@ -195,10 +196,19 @@ public class MainService {
             newArg.add(name);
             List<String> maybeResult = defineRoute(newArg, end);
 
-            if (maybeResult!=null) return maybeResult;
+            if (maybeResult!=null) results.add(maybeResult);
         }
 
-        return null;
+        int minLength = Integer.MAX_VALUE;
+        List<String> result = null;
+        for (List<String> oneIsRoutes :results){
+            if (oneIsRoutes.size()<minLength){
+                minLength=oneIsRoutes.size();
+                result=oneIsRoutes;
+            }
+        }
+
+        return result;
     }
     private List<LocationPointInfo> convertRouteToDataRoute(List<String> route){
         if (route==null) return null;
