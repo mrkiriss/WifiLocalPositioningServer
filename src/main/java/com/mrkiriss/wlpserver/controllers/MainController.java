@@ -41,7 +41,7 @@ public class MainController {
         }
     }
 
-    @GetMapping("/define/room/coordinates")
+    @GetMapping("/define/room/info")
     public ResponseEntity<?> getListOfLPInfo(){
         try{
             ListOfAllMapPoints listOfAllMapPoints = mainService.getListOfLPInfo();
@@ -81,7 +81,7 @@ public class MainController {
         }
     }
 
-    @PostMapping("/training/room/coordinates")
+    @PostMapping("/training/room/info")
     public ResponseEntity<?> addRoomCoordinates(@RequestBody LocationPointInfo locationPointInfo){
         try {
             System.out.println("Запрос на добавление координат точки "+locationPointInfo.toString());
@@ -92,7 +92,7 @@ public class MainController {
         }
     }
 
-    @DeleteMapping("/training/room/coordinates")
+    @DeleteMapping("/training/room/info")
     public ResponseEntity<StringResponse> deleteRoomCoordinates(@RequestParam String roomName){
         try{
             System.out.println("Удаление инф. части точки началось");

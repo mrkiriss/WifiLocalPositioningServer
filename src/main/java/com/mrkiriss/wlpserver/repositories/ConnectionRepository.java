@@ -14,6 +14,6 @@ public interface ConnectionRepository extends CrudRepository<Connection, Long> {
     List<Connection> findAllByFirstName(String firstName);
     List<Connection> findAllBySecondName(String secondName);
     void deleteConnectionByFirstNameAndSecondName(String firstName, String secondName);
-
-
+    void deleteAllByFirstName(String firstName);
+    void deleteAllBySecondName(String secondName);
 }

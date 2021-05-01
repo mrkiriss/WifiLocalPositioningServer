@@ -189,7 +189,12 @@ public class MainService {
         }
         List<List<String>> results = new ArrayList<>();
         for (String name: getExistingConnectionsWithMain(current)){
-            if (route.contains(name)) continue; // точка была пройдена ранее, петля
+            // проверяем тип точки, нужен только коридор (не должо совпадать с именем конца)
+            LocationPointInfo info = lpInfoRepository.findByRoomName(name);
+            if (info==null || (!info.isRoom() && !name.equals(end))) continue;
+
+            // точка была пройдена ранее, петля
+            if (route.contains(name)) continue;
 
             // создание нового объекта маршрута с добавлением в него возможного конца пути
             List<String> newArg = new ArrayList<>(route);
@@ -257,8 +262,13 @@ public class MainService {
         if (lp==null){
             return new StringResponse("Информация о точке не найдена");
         }
+        // удаляем информацию
         lpInfoRepository.delete(lp);
-        return new StringResponse("Информация о точке"+lp.toString()+" успешно удалена");
+        // удаляем связи
+        deleteConnections(roomName);
+        // удаляем сканирования
+        deleteLocationPoint(roomName);
+        return new StringResponse("Вся информация о точке"+lp.toString()+" успешно удалена");
     }
     public StringResponse deleteLocationPoint(String roomName){
         List<LocationPoint> lp= locationPointRepository.findAllByRoomName(roomName);
@@ -267,6 +277,10 @@ public class MainService {
         }
         locationPointRepository.deleteAll(lp);
         return new StringResponse("Информация о сканированиях"+lp.toString()+" успешно удалена");
+    }
+    private void deleteConnections(String roomName){
+        connectionRepository.deleteAllByFirstName(roomName);
+        connectionRepository.deleteAllBySecondName(roomName);
     }
 
     // connections mode
@@ -345,6 +359,8 @@ public class MainService {
     public Connections downloadConnections(String name){
         Connections result = new Connections();
         result.setMainRoomName(name);
+        if (lpInfoRepository.findByRoomName(name)==null) result.setMainRoomName(null);
+
         result.setSecondaryRooms(new ArrayList<>());
 
         List<String> existingConnections = getExistingConnectionsWithMain(name);
