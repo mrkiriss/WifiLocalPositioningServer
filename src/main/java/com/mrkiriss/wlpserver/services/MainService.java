@@ -81,7 +81,6 @@ public class MainService {
 
         return results;
     }
-
     // Выбор точек из базы с количеством совподений в MACs с набором от клиента >2
     private List<LocationPoint> chooseAllSuitableLocationPoints(List<String> currentMacsCollection){
         //locationPointRepository.findAllSuitableByMacCount(smoothedLocationPoint.collectMACs())
@@ -172,6 +171,42 @@ public class MainService {
 
         if (result==null) result=new DefinedLocationPoint();
         //result.setSteps(result.getSteps()+allNames.toString());
+        return result;
+    }
+
+
+    public List<LocationPointInfo> getDefinedRoute(String start, String end){
+        List<String> arg = new ArrayList<>();
+        arg.add(start);
+        List<String> definedRoute = defineRoute(arg,end);
+
+        return convertRouteToDataRoute(definedRoute);
+    }
+    private List<String> defineRoute(List<String> route, String end){
+        String current= route.get(route.size()-1);
+        if (current.equals(end)){         // прибытие к точке назначения
+            return route;
+        }
+        for (String name: getExistingConnectionsWithMain(current)){
+            if (route.contains(name)) continue; // точка была пройдена ранее, петля
+
+            // создание нового объекта маршрута с добавлением в него возможного конца пути
+            List<String> newArg = new ArrayList<>(route);
+            newArg.add(name);
+            List<String> maybeResult = defineRoute(newArg, end);
+
+            if (maybeResult!=null) return maybeResult;
+        }
+
+        return null;
+    }
+    private List<LocationPointInfo> convertRouteToDataRoute(List<String> route){
+        if (route==null) return null;
+
+        List<LocationPointInfo> result = new ArrayList<>();
+        for (String name:route){
+            result.add(lpInfoRepository.findByRoomName(name));
+        }
         return result;
     }
 
@@ -304,7 +339,9 @@ public class MainService {
 
         List<String> existingConnections = getExistingConnectionsWithMain(name);
         for (String singleConnectionName: existingConnections){
-            result.getSecondaryRooms().add(lpInfoRepository.findByRoomName(singleConnectionName));
+            LocationPointInfo locationPointInfo = lpInfoRepository.findByRoomName(singleConnectionName);
+            if (locationPointInfo!=null)
+                result.getSecondaryRooms().add(lpInfoRepository.findByRoomName(singleConnectionName));
         }
 
         return result;

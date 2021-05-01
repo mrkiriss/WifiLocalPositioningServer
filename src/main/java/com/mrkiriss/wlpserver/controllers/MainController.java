@@ -54,6 +54,19 @@ public class MainController {
         }
     }
 
+    @GetMapping("/define/route")
+    public ResponseEntity<List<LocationPointInfo>> getRoute(@RequestParam("start") String start, @RequestParam("end") String end) {
+        try {
+            System.out.println("Начато определениея маршрута между "+start+"..."+end);
+            List<LocationPointInfo> result = mainService.getDefinedRoute(start, end);
+            System.out.println("Маршрут успешно определён: "+result);
+            return ResponseEntity.ok(result);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
     @PostMapping("/training/room/aps")
     public ResponseEntity<?> addRoomWithoutCoordinates(@RequestBody CalibrationLocationPoint calibrationLocationPoint){
         try {
@@ -64,7 +77,7 @@ public class MainController {
             return ResponseEntity.ok(response);
         } catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
+            return ResponseEntity.ok(new StringResponse(e.getMessage()));
         }
     }
 

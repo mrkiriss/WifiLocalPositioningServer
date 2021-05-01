@@ -20,4 +20,8 @@ public class LocationPointInfo {
     private int x;
     private int y;
     private String isRoom; // иначе коридор (для создания маршрута)
+
+    public boolean isRoom(){
+        return isRoom.equals("true");
+    }
 }
