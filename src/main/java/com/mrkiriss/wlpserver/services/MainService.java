@@ -191,7 +191,7 @@ public class MainService {
         for (String name: getExistingConnectionsWithMain(current)){
             // проверяем тип точки, нужен только коридор (не должо совпадать с именем конца)
             LocationPointInfo info = lpInfoRepository.findByRoomName(name);
-            if (info==null || (!info.isRoom() && !name.equals(end))) continue;
+            if (info==null || (info.isRoom() && !name.equals(end))) continue;
 
             // точка была пройдена ранее, петля
             if (route.contains(name)) continue;
