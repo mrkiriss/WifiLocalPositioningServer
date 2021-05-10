@@ -64,6 +64,7 @@ public class MainService {
         result.setX(resultInfo.getX());
         result.setY(resultInfo.getY());
         result.setFloorId(resultInfo.getFloorId());
+        result.setIsRoom(resultInfo.getIsRoom());
 
         return result;
     }

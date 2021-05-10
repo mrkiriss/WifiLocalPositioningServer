@@ -8,6 +8,7 @@ public class DefinedLocationPoint {
     private float y;
     private int floorId;
     private String roomName;
+    private String isRoom;
 
     private String steps="";
 }
