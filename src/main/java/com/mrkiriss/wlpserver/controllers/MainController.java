@@ -41,6 +41,17 @@ public class MainController {
         }
     }
 
+    @GetMapping("/define/instruction")
+    public ResponseEntity<StringResponse> getInstructionURL(){
+        try{
+            String instructionURLByYouTubeVideoId = "BaTm2RfcYPE";
+            return ResponseEntity.ok(new StringResponse(instructionURLByYouTubeVideoId));
+        }catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(new StringResponse(e.getMessage()));
+        }
+    }
+
     @GetMapping("/define/room/info")
     public ResponseEntity<?> getListOfLPInfo(){
         try{
