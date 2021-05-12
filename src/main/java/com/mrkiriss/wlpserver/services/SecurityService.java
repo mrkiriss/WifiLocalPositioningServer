@@ -12,12 +12,16 @@ public class SecurityService {
     AccessLevelRepository accessLevelRepository;
 
     public Integer defineAccessLevel(String uuid){
-        AccessLevel accessLevel = accessLevelRepository.findByUuid(uuid);
+
+        // временная выдача максимального уровня доступа
+        return 2;
+
+        /*AccessLevel accessLevel = accessLevelRepository.findByUuid(uuid);
         if (accessLevel==null){
             return 0;
         }else{
             return accessLevel.getLevel();
-        }
+        }*/
     }
 
     public AccessLevel addAccessLevel(String uuid, int level){
