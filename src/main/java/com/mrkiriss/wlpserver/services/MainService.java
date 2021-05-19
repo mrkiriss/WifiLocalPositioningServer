@@ -12,6 +12,7 @@ import com.mrkiriss.wlpserver.repositories.LocationPointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -70,6 +71,8 @@ public class MainService {
     }
 
     private List<LocationPoint> splitPointOfCalibration(CalibrationLocationPoint calibrationLocationPoint){
+        Date currentDateObject = new Date();
+
         List<LocationPoint> results = new ArrayList<>();
         LocationPoint result;
 
@@ -77,6 +80,7 @@ public class MainService {
             result = new LocationPoint();
             result.setRoomName(calibrationLocationPoint.getRoomName());
             result.setAccessPoints(currentAPSet);
+            result.setDateAdded(dateFormat.format(currentDateObject));
             results.add(result);
         }
 
@@ -375,6 +379,34 @@ public class MainService {
             LocationPointInfo locationPointInfo = lpInfoRepository.findByRoomName(singleConnectionName);
             if (locationPointInfo!=null)
                 result.getSecondaryRooms().add(lpInfoRepository.findByRoomName(singleConnectionName));
+        }
+
+        return result;
+    }
+
+    // scanning mode
+    // формат для даты, используется в splitPointOfCalibration()
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy");
+    // получение информации о сканированиях точки {количество наборов, дата изменения}
+    public List<ScanInformation> getScanningInfo(String locationName){
+        List<LocationPoint> locationPoints = locationPointRepository.findAllByRoomName(locationName);
+        // словарь для формирования данных о дате и количестве
+        Map<String, Integer> data = new HashMap<>();
+
+        for (LocationPoint locationPoint: locationPoints){
+            String date = locationPoint.getDateAdded();
+            // создаём дату, если её ещё нет
+            if (!data.containsKey(date)){
+                data.put(date, 0);
+            }
+            // увеличиваем счётчик (т.к. у каждого объекта LocationPoint только 1 набор, увеличиваем на 1)
+            data.put(date, data.get(date)+1);
+        }
+
+        // преобразовываем для отправки клиенту
+        List<ScanInformation> result = new ArrayList<>();
+        for (String date : data.keySet()){
+            result.add(new ScanInformation(date, data.get(date)));
         }
 
         return result;

@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 public class LocationPoint {
     private String roomName;
+    private String dateAdded;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name="LP_ID")

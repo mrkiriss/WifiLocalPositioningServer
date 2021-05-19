@@ -150,4 +150,17 @@ public class MainController {
             return ResponseEntity.ok(new StringResponse(e.getMessage()));
         }
     }
+
+    @GetMapping("/training/room/aps/info")
+    public ResponseEntity<List<ScanInformation>> getScanningInfo(@RequestParam("name") String name){
+        try {
+            System.out.println("Запрос на получение информации о сканированиях для точки="+name);
+            List<ScanInformation> response = mainService.getScanningInfo(name);
+            System.out.println("Запрос успешен, данные: "+response.toString());
+            return ResponseEntity.ok(response);
+        }catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 }
